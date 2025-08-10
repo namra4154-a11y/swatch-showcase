@@ -4,9 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { addProductRow, uploadProductImage } from "@/lib/products";
 import { useState, useEffect } from "react";
+import { Plus, Upload, Package, Tag, DollarSign, Ruler, Image as ImageIcon, CheckCircle, X } from "lucide-react";
 
 const schema = z.object({
   name: z.string().min(1),
@@ -28,8 +31,30 @@ const schema = z.object({
 export default function AddProductPage() {
   const form = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema) });
   const [submitting, setSubmitting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => { document.title = "Add Product – Swatch Showcase"; }, []);
+
+  const handleImageChange = (files: FileList | null) => {
+    if (files && files.length > 0) {
+      const file = files[0];
+      setSelectedImage(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    form.setValue("image", undefined);
+  };
 
   const onSubmit = async (values: z.infer<typeof schema>) => {
     try {
@@ -66,108 +91,275 @@ export default function AddProductPage() {
   };
 
   return (
-    <main className="container py-6">
-      <h1 className="text-2xl font-semibold tracking-tight mb-6">Manual Add Product</h1>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField control={form.control} name="name" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Product name</FormLabel>
-              <FormControl><Input placeholder="e.g. jakit suit" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="design_no" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Design no.</FormLabel>
-              <FormControl><Input placeholder="e.g. 820" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-
-          <FormField control={form.control} name="product_rate_inr" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Product rate (INR)</FormLabel>
-              <FormControl><Input type="number" step="0.01" placeholder="e.g. 1295" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="fabric_supplier" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Fabric supplier</FormLabel>
-              <FormControl><Input placeholder="e.g. M Mahindra Kumar" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-
-          <FormField control={form.control} name="fabric_name" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Fabric name</FormLabel>
-              <FormControl><Input placeholder="e.g. computer emb" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="fabric_rate_inr" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Fabric rate (INR)</FormLabel>
-              <FormControl><Input type="number" step="0.01" placeholder="e.g. 350" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-
-          <FormField control={form.control} name="panno_inch" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Panno (inch)</FormLabel>
-              <FormControl><Input type="number" step="0.01" placeholder="e.g. 38" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="matching" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Matching</FormLabel>
-              <FormControl><Input placeholder="e.g. rayon" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-
-          <FormField control={form.control} name="matching_fabric_rate_inr" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Matching fabric rate (INR)</FormLabel>
-              <FormControl><Input type="number" step="0.01" placeholder="e.g. 65" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="matching_fabric_panno_inch" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Matching fabric Panno (inch)</FormLabel>
-              <FormControl><Input type="number" step="0.01" placeholder="e.g. 44" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-
-          <FormField control={form.control} name="tags" render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Tags (comma separated)</FormLabel>
-              <FormControl><Input placeholder="e.g. party, rayon" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-
-          <FormField control={form.control} name="image" render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Image</FormLabel>
-              <FormControl>
-                <Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files)} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-
-          <div className="md:col-span-2 flex justify-end gap-2">
-            <Button type="submit" disabled={submitting}>{submitting ? "Saving..." : "Save Product"}</Button>
+    <main className="container py-8 max-w-4xl mx-auto">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium border border-primary/20">
+            <Plus className="h-4 w-4" />
+            Add New Product
           </div>
-        </form>
-      </Form>
+          <h1 className="text-3xl font-bold tracking-tight">Manual Add Product</h1>
+          <p className="text-muted-foreground">Add a new product to the catalog with all necessary details and image.</p>
+        </div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {/* Basic Information */}
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Basic Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="name" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Product name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. jakit suit" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  
+                  <FormField control={form.control} name="design_no" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Design no.</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. 820" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="product_rate_inr" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Product rate (INR)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="e.g. 1295" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  
+                  <FormField control={form.control} name="tags" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Tags (comma separated)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. party, rayon" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Fabric Information */}
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Fabric Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="fabric_supplier" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Fabric supplier</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. M Mahindra Kumar" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  
+                  <FormField control={form.control} name="fabric_name" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Fabric name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. computer emb" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="fabric_rate_inr" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Fabric rate (INR)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="e.g. 350" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  
+                  <FormField control={form.control} name="panno_inch" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Panno (inch)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="e.g. 38" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Matching Information */}
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Tag className="h-5 w-5" />
+                  Matching Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="matching" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Matching</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. rayon" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  
+                  <FormField control={form.control} name="matching_fabric_rate_inr" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Matching fabric rate (INR)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="e.g. 65" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="matching_fabric_panno_inch" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Matching fabric Panno (inch)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="e.g. 44" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Image Upload */}
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5" />
+                  Product Image
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FormField control={form.control} name="image" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">Upload Image</FormLabel>
+                    <FormControl>
+                      {!selectedImage ? (
+                        <div className="border-2 border-dashed border-border/50 rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                          <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <Input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={(e) => {
+                              field.onChange(e.target.files);
+                              handleImageChange(e.target.files);
+                            }}
+                            className="hidden"
+                            id="image-upload"
+                          />
+                          <label htmlFor="image-upload" className="cursor-pointer">
+                            <div className="text-lg font-medium mb-2">Click to upload image</div>
+                            <div className="text-sm text-muted-foreground">PNG, JPG, GIF up to 10MB</div>
+                          </label>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Image Preview */}
+                          <div className="relative">
+                            <img 
+                              src={imagePreview!} 
+                              alt="Product preview" 
+                              className="w-full h-64 object-cover rounded-lg border border-border/50"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
+                              onClick={removeImage}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          {/* Upload Confirmation */}
+                          <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                            <div className="flex-1">
+                              <div className="font-medium text-green-800">Image uploaded successfully!</div>
+                              <div className="text-sm text-green-600">
+                                {selectedImage.name} ({(selectedImage.size / 1024 / 1024).toFixed(2)} MB)
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Change Image Button */}
+                          <div className="text-center">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                removeImage();
+                                const input = document.getElementById('image-upload') as HTMLInputElement;
+                                if (input) input.click();
+                              }}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Change Image
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </CardContent>
+            </Card>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <Button 
+                type="submit" 
+                disabled={submitting} 
+                size="lg" 
+                className="h-12 px-8 text-lg font-medium"
+              >
+                {submitting ? "Saving..." : "Save Product"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </div>
     </main>
   );
 }

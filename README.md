@@ -1,73 +1,70 @@
-# Welcome to your Lovable project
+# Swatch Showcase
 
-## Project info
+A modern web application for showcasing and managing fabric swatches with advanced filtering, search, and export capabilities.
 
-**URL**: https://lovable.dev/projects/1eec5442-0b55-4032-bd9e-ca315dfb54bf
+## Features
 
-## How can I edit this code?
+- **Product Catalog**: Browse and search through fabric swatches with advanced filtering
+- **Product Details**: View detailed information about each fabric swatch
+- **Add Products**: Upload new fabric swatches with images
+- **Export Functionality**: Export product data in XLSX format with optional image embedding
+- **Modern UI**: Built with React, TypeScript, and Shadcn UI components
 
-There are several ways of editing your application.
+## Installation
 
-**Use Lovable**
+1. Clone the repository
+2. Install dependencies:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1eec5442-0b55-4032-bd9e-ca315dfb54bf) and start prompting.
+   ```bash
+   npm install
+   ```
 
-Changes made via Lovable will be committed automatically to this repo.
+3. **For XLSX Export Functionality**: Install additional dependencies:
 
-**Use your preferred IDE**
+   ```bash
+   npm install xlsx file-saver
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+4. Set up your Supabase configuration in `src/integrations/supabase/client.ts`
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+5. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-Follow these steps:
+## Export Features
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### XLSX Export
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- **Standard XLSX**: Export all product data in Excel format
+- **XLSX with Images**: Export product data with embedded images (requires xlsx dependency)
 
-# Step 3: Install the necessary dependencies.
-npm i
+### CSV Export
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+- Basic CSV export functionality (legacy)
 
-**Edit a file directly in GitHub**
+## Dependencies
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Core Dependencies
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
+- React 18
 - TypeScript
-- React
-- shadcn-ui
 - Tailwind CSS
+- Shadcn UI Components
 
-## How can I deploy this project?
+### Export Dependencies (Optional)
 
-Simply open [Lovable](https://lovable.dev/projects/1eec5442-0b55-4032-bd9e-ca315dfb54bf) and click on Share -> Publish.
+- `xlsx`: For Excel file generation
+- `file-saver`: For file download handling
 
-## Can I connect a custom domain to my Lovable project?
+## Usage
 
-Yes, you can!
+1. **Browse Products**: Navigate to `/products` to view the product catalog
+2. **Add Products**: Use `/add-product` to upload new fabric swatches
+3. **Export Data**: Visit `/export` to download product data in various formats
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Notes
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- The XLSX export with images feature requires the `xlsx` package to be installed
+- Image embedding in Excel files is a complex process and may require additional configuration
+- For production use, consider implementing proper error handling and user feedback

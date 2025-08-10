@@ -1,41 +1,91 @@
-import { useEffect, useState } from "react";
-import { exportProductsCSV } from "@/lib/products";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { FileSpreadsheet } from "lucide-react";
+import { exportProductsXLSXWithImageFormula } from "@/lib/products";
 
 export default function ExportPage() {
   const [downloading, setDownloading] = useState(false);
-  useEffect(() => { document.title = "Export – Swatch Showcase"; }, []);
+  const [downloaded, setDownloaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onDownload = async () => {
+  const onExport = async () => {
+    setDownloading(true);
+    setError(null);
     try {
-      setDownloading(true);
-      const csv = await exportProductsCSV();
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const blob = await exportProductsXLSXWithImageFormula();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
       a.href = url;
-      a.download = `products.csv`;
+      a.download = `products-export.xlsx`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error(e);
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setDownloaded(true);
+      setTimeout(() => setDownloaded(false), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export products');
     } finally {
       setDownloading(false);
     }
   };
 
   return (
-    <main className="container py-6 grid gap-4">
-      <h1 className="text-2xl font-semibold tracking-tight">Export Database</h1>
-      <p className="text-muted-foreground">Download all products as CSV for backup or analysis.</p>
-      <div>
-        <Button onClick={onDownload} disabled={downloading}>{downloading ? "Preparing..." : "Download CSV"}</Button>
+    <main className="container py-8 max-w-2xl mx-auto">
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold tracking-tight">Export Products</h1>
+        </div>
+
+        {/* Export Card */}
+        <Card className="border-border/50">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-xl">
+              <FileSpreadsheet className="h-6 w-6" />
+              Export to Excel
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="text-center">
+              <Button 
+                onClick={onExport} 
+                disabled={downloading} 
+                size="lg"
+                variant="default"
+                className="h-12 px-8 text-lg font-medium"
+              >
+                {downloading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <FileSpreadsheet className="h-5 w-5 mr-2" />
+                    Export
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {downloaded && (
+              <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 border border-green-200 rounded-lg p-3">
+                <span className="font-medium">
+                  Products exported successfully!
+                </span>
+              </div>
+            )}
+
+            {error && (
+              <div className="flex items-center justify-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                <span className="font-medium">{error}</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-      <Separator />
-      <section className="text-sm text-muted-foreground">
-        <p>Alternative (via Supabase Dashboard): Table Editor → products → three dots → Export/Download CSV.</p>
-      </section>
     </main>
   );
 }
