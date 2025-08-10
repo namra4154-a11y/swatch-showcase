@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { addProductRow, uploadProductImage } from "@/lib/products";
 import { useState, useEffect } from "react";
@@ -22,6 +23,7 @@ const schema = z.object({
   matching_fabric_rate_inr: z.coerce.number().nonnegative().optional(),
   matching_fabric_panno_inch: z.coerce.number().nonnegative().optional(),
   product_rate_inr: z.coerce.number().nonnegative(),
+  category: z.enum(["Kurta suit", "Jakit suit", "Coat suit", "Jodhpuri suit", "Three peice indo suit", "Pathani suit", "others"]),
   tags: z.string().optional(), // comma separated
   image: z
     .any()
@@ -75,6 +77,7 @@ export default function AddProductPage() {
         matching_fabric_rate_inr: values.matching_fabric_rate_inr ?? null,
         matching_fabric_panno_inch: values.matching_fabric_panno_inch ?? null,
         product_rate_inr: values.product_rate_inr,
+        category: values.category,
         image_path: storagePath,
         tags: values.tags ? values.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
       } as const;
@@ -147,6 +150,31 @@ export default function AddProductPage() {
                     </FormItem>
                   )} />
                   
+                  <FormField control={form.control} name="category" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Category</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Kurta suit">Kurta suit</SelectItem>
+                            <SelectItem value="Jakit suit">Jakit suit</SelectItem>
+                            <SelectItem value="Coat suit">Coat suit</SelectItem>
+                            <SelectItem value="Jodhpuri suit">Jodhpuri suit</SelectItem>
+                            <SelectItem value="Three peice indo suit">Three peice indo suit</SelectItem>
+                            <SelectItem value="Pathani suit">Pathani suit</SelectItem>
+                            <SelectItem value="others">Others</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField control={form.control} name="tags" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-base">Tags (comma separated)</FormLabel>

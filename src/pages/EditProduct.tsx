@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { getProductByDesignNo, updateProduct, uploadProductImage, Product } from "@/lib/products";
 import { useState, useEffect } from "react";
@@ -23,6 +24,7 @@ const schema = z.object({
   matching_fabric_rate_inr: z.coerce.number().nonnegative().optional(),
   matching_fabric_panno_inch: z.coerce.number().nonnegative().optional(),
   product_rate_inr: z.coerce.number().nonnegative(),
+  category: z.enum(["Kurta suit", "Jakit suit", "Coat suit", "Jodhpuri suit", "Three peice indo suit", "Pathani suit", "others"]),
   tags: z.string().optional(), // comma separated
   image: z.any().optional(),
 });
@@ -70,6 +72,7 @@ export default function EditProductPage() {
           matching_fabric_rate_inr: p.matching_fabric_rate_inr || undefined,
           matching_fabric_panno_inch: p.matching_fabric_panno_inch || undefined,
           product_rate_inr: p.product_rate_inr,
+          category: p.category,
           tags: p.tags ? p.tags.join(", ") : "",
         });
       } catch (e: any) {
@@ -129,6 +132,7 @@ export default function EditProductPage() {
         matching_fabric_rate_inr: values.matching_fabric_rate_inr ?? null,
         matching_fabric_panno_inch: values.matching_fabric_panno_inch ?? null,
         product_rate_inr: values.product_rate_inr,
+        category: values.category,
         image_path: imagePath,
         tags: values.tags ? values.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
       } as const;
@@ -229,6 +233,33 @@ export default function EditProductPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category *</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Kurta suit">Kurta suit</SelectItem>
+                              <SelectItem value="Jakit suit">Jakit suit</SelectItem>
+                              <SelectItem value="Coat suit">Coat suit</SelectItem>
+                              <SelectItem value="Jodhpuri suit">Jodhpuri suit</SelectItem>
+                              <SelectItem value="Three peice indo suit">Three peice indo suit</SelectItem>
+                              <SelectItem value="Pathani suit">Pathani suit</SelectItem>
+                              <SelectItem value="others">Others</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
                     name="fabric_supplier"
                     render={({ field }) => (
                       <FormItem>
@@ -240,7 +271,9 @@ export default function EditProductPage() {
                       </FormItem>
                     )}
                   />
-                  
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="fabric_name"

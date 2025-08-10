@@ -63,6 +63,11 @@ export function ProductCard({ product, onClick, viewMode = "grid" }: Props) {
                 <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20 text-primary">
                   Design: {product.design_no}
                 </Badge>
+                {product.category && (
+                  <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                    {product.category}
+                  </Badge>
+                )}
                 {product.tags && product.tags.length > 0 && product.tags.slice(0, 2).map((tag) => (
                   <Badge key={tag} variant="outline" className="text-xs">
                     {tag}
@@ -109,6 +114,11 @@ export function ProductCard({ product, onClick, viewMode = "grid" }: Props) {
             <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20 text-primary">
               Design: {product.design_no}
             </Badge>
+            {product.category && (
+              <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                {product.category}
+              </Badge>
+            )}
             {product.tags && product.tags.length > 0 && product.tags.slice(0, 1).map((tag) => (
               <Badge key={tag} variant="outline" className="text-xs">
                 {tag}

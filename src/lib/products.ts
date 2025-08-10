@@ -13,6 +13,14 @@ export type Product = {
   matching_fabric_panno_inch: number | null;
   product_rate_inr: number;
   image_path: string;
+  category:
+    | "Kurta suit"
+    | "Jakit suit"
+    | "Coat suit"
+    | "Jodhpuri suit"
+    | "Three peice indo suit"
+    | "Pathani suit"
+    | "others";
   tags: string[] | null;
   created_at: string;
   updated_at: string;

@@ -40,6 +40,7 @@ export default function ProductsPage() {
   // Advanced filters
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [fabricType, setFabricType] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
@@ -122,6 +123,7 @@ export default function ProductsPage() {
     if (minPrice > 0) p.set("minPrice", String(minPrice));
     if (maxPrice < 5000) p.set("maxPrice", String(maxPrice));
     if (selectedTags.length > 0) p.set("tags", selectedTags.join(","));
+    if (selectedCategory !== "all") p.set("category", selectedCategory);
     if (fabricType !== "all") p.set("fabricType", fabricType);
     
     const newSearch = p.toString();
@@ -164,6 +166,13 @@ export default function ProductsPage() {
           );
         }
         
+        // Filter by category
+        if (selectedCategory !== "all") {
+          filteredItems = filteredItems.filter(item => 
+            item.category === selectedCategory
+          );
+        }
+        
         setItems(filteredItems);
         setTotal(filteredItems.length);
       } catch (e) {
@@ -175,7 +184,7 @@ export default function ProductsPage() {
       }
     }
     run();
-  }, [dq, supplier, sort, page, minPrice, maxPrice, selectedTags, fabricType]);
+  }, [dq, supplier, sort, page, minPrice, maxPrice, selectedTags, selectedCategory, fabricType]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -187,6 +196,7 @@ export default function ProductsPage() {
     setMinPrice(0);
     setMaxPrice(5000);
     setSelectedTags([]);
+    setSelectedCategory("all");
     setFabricType("all");
   };
 
@@ -197,6 +207,7 @@ export default function ProductsPage() {
     minPrice > 0 ? 1 : 0,
     maxPrice < 5000 ? 1 : 0,
     selectedTags.length,
+    selectedCategory !== "all" ? 1 : 0,
     fabricType !== "all" ? 1 : 0
   ].reduce((a, b) => a + b, 0);
 
@@ -306,6 +317,26 @@ export default function ProductsPage() {
                 </Select>
               </div>
 
+              {/* Category Filter */}
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select value={selectedCategory} onValueChange={(v) => { setSelectedCategory(v); setPage(1); }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All categories</SelectItem>
+                    <SelectItem value="Kurta suit">Kurta suit</SelectItem>
+                    <SelectItem value="Jakit suit">Jakit suit</SelectItem>
+                    <SelectItem value="Coat suit">Coat suit</SelectItem>
+                    <SelectItem value="Jodhpuri suit">Jodhpuri suit</SelectItem>
+                    <SelectItem value="Three peice indo suit">Three peice indo suit</SelectItem>
+                    <SelectItem value="Pathani suit">Pathani suit</SelectItem>
+                    <SelectItem value="others">Others</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Fabric Type Filter */}
               <div className="space-y-2">
                 <Label>Fabric Type</Label>
@@ -410,6 +441,12 @@ export default function ProductsPage() {
               <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedTags(selectedTags.filter(t => t !== tag))} />
             </Badge>
           ))}
+          {selectedCategory !== "all" && (
+            <Badge variant="secondary" className="gap-1">
+              Category: {selectedCategory}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedCategory("all")} />
+            </Badge>
+          )}
           {fabricType !== "all" && (
             <Badge variant="secondary" className="gap-1">
               {fabricType}
@@ -433,7 +470,7 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {/* Products Grid/List */}
+      {/* Products by Category */}
       <section aria-busy={loading}>
         {loading ? (
           <div className={viewMode === "grid" 
@@ -471,18 +508,51 @@ export default function ProductsPage() {
             )}
           </div>
         ) : (
-          <div className={viewMode === "grid" 
-            ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" 
-            : "space-y-4"
-          }>
-            {items.map((p) => (
-              <ProductCard 
-                key={p.id} 
-                product={p} 
-                onClick={() => navigate(`/products/${encodeURIComponent(p.design_no)}`)}
-                viewMode={viewMode}
-              />
-            ))}
+          <div className="space-y-12">
+            {(() => {
+              // Group products by category
+              const categories = [
+                "Kurta suit",
+                "Jakit suit", 
+                "Coat suit",
+                "Jodhpuri suit",
+                "Three peice indo suit",
+                "Pathani suit",
+                "others"
+              ];
+              
+              return categories.map(category => {
+                const categoryProducts = items.filter(item => item.category === category);
+                
+                // Skip empty categories
+                if (categoryProducts.length === 0) return null;
+                
+                return (
+                  <div key={category} className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl font-bold tracking-tight">{category}</h2>
+                      <Badge variant="secondary" className="text-sm">
+                        {categoryProducts.length} {categoryProducts.length === 1 ? 'product' : 'products'}
+                      </Badge>
+                    </div>
+                    
+                    <div className={viewMode === "grid" 
+                      ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" 
+                      : "space-y-4"
+                    }>
+                      {categoryProducts.map((p) => (
+                        <ProductCard 
+                          key={p.id} 
+                          product={p} 
+                          onClick={() => navigate(`/products/${encodeURIComponent(p.design_no)}`)}
+                          viewMode={viewMode}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         )}
       </section>
