@@ -10,6 +10,7 @@ import Header from "@/components/Header";
 import ProductsPage from "@/pages/Products";
 import ProductDetailPage from "@/pages/ProductDetail";
 import AddProductPage from "@/pages/AddProduct";
+import EditProductPage from "@/pages/EditProduct";
 import ExportPage from "@/pages/Export";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:design_no" element={<ProductDetailPage />} />
+            <Route path="/products/:design_no/edit" element={<EditProductPage />} />
             <Route path="/add" element={<AddProductPage />} />
             <Route path="/export" element={<ExportPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

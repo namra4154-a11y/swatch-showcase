@@ -1,13 +1,25 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getProductByDesignNo, getRelatedBySupplier, Product } from "@/lib/products";
+import { getProductByDesignNo, getRelatedBySupplier, deleteProduct, Product } from "@/lib/products";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ProductCard } from "@/components/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Tag, Package, DollarSign, Ruler, Info, Image as ImageIcon, X, ZoomIn } from "lucide-react";
+import { ArrowLeft, Tag, Package, DollarSign, Ruler, Info, Image as ImageIcon, X, ZoomIn, Edit, Trash2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function ProductDetailPage() {
   const { design_no } = useParams();
@@ -32,6 +44,19 @@ export default function ProductDetailPage() {
 
   const handleResetZoom = () => {
     setImageZoom(1);
+  };
+
+  const handleDelete = async () => {
+    if (!product) return;
+    
+    try {
+      await deleteProduct(product.design_no);
+      toast({ title: "Product deleted", description: `Design ${product.design_no} has been deleted successfully.` });
+      navigate("/products");
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Failed to delete product", description: e.message });
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -173,12 +198,57 @@ export default function ProductDetailPage() {
                 <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
                 <div className="text-lg text-muted-foreground">{product.fabric_name || "—"}</div>
               </div>
-              <Badge variant="secondary" className="font-mono text-lg px-4 py-2 bg-primary/10 text-primary border-primary/20">
-                {product.design_no}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="font-mono text-lg px-4 py-2 bg-primary/10 text-primary border-primary/20">
+                  {product.design_no}
+                </Badge>
+              </div>
             </div>
             
-            <div className="text-3xl font-bold text-primary">₹ {Number(product.product_rate_inr).toFixed(2)}</div>
+            <div className="flex items-center justify-between">
+              <div className="text-3xl font-bold text-primary">₹ {Number(product.product_rate_inr).toFixed(2)}</div>
+              
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/products/${encodeURIComponent(product.design_no)}/edit`)}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit
+                </Button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the product
+                        "{product.name}" (Design {product.design_no}) and remove it from the database.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Delete Product
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
           </div>
 
           <Separator />
@@ -300,7 +370,7 @@ export default function ProductDetailPage() {
       {/* Image Modal */}
       {imageModalOpen && (
         <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-2 sm:p-4"
           onClick={() => {
             setImageModalOpen(false);
             setImageZoom(1);
@@ -308,41 +378,41 @@ export default function ProductDetailPage() {
         >
           <div className="relative w-full h-full max-w-6xl max-h-full flex items-center justify-center">
             {/* Zoom Controls */}
-            <div className="absolute top-4 left-4 z-10 flex gap-2">
+            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex gap-1 sm:gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-colors"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleZoomOut();
                 }}
                 disabled={imageZoom <= 0.5}
               >
-                <span className="text-lg font-bold">−</span>
+                <span className="text-sm sm:text-lg font-bold">−</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-colors"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleResetZoom();
                 }}
               >
-                <span className="text-sm">100%</span>
+                <span className="text-xs sm:text-sm">100%</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-colors"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleZoomIn();
                 }}
                 disabled={imageZoom >= 3}
               >
-                <span className="text-lg font-bold">+</span>
+                <span className="text-sm sm:text-lg font-bold">+</span>
               </Button>
             </div>
 
@@ -350,20 +420,20 @@ export default function ProductDetailPage() {
             <Button
               variant="ghost"
               size="sm"
-              className="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-colors"
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
               onClick={(e) => {
                 e.stopPropagation();
                 setImageModalOpen(false);
                 setImageZoom(1);
               }}
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
             
             {/* Image Container with Scroll */}
-            <div className="w-full h-full overflow-auto flex items-center justify-center">
+            <div className="w-full h-full overflow-auto flex items-center justify-center p-2 sm:p-4">
               <div 
-                className="relative"
+                className="relative flex items-center justify-center"
                 style={{
                   transform: `scale(${imageZoom})`,
                   transformOrigin: 'center',
@@ -373,9 +443,11 @@ export default function ProductDetailPage() {
                 <img
                   src={resolvedUrl}
                   alt={`${product.name} – design ${product.design_no}`}
-                  className="max-w-none select-none"
+                  className="max-w-full max-h-full object-contain select-none"
                   style={{
-                    cursor: imageZoom > 1 ? 'grab' : 'default'
+                    cursor: imageZoom > 1 ? 'grab' : 'default',
+                    maxWidth: 'min(100vw - 2rem, 100%)',
+                    maxHeight: 'min(100vh - 2rem, 100%)'
                   }}
                   onClick={(e) => e.stopPropagation()}
                   draggable={false}
@@ -384,14 +456,15 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Zoom Info */}
-            <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-2 rounded-lg backdrop-blur-sm text-sm font-medium">
+            <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-black/60 text-white px-2 py-1 sm:px-3 sm:py-2 rounded-lg backdrop-blur-sm text-xs sm:text-sm font-medium">
               {Math.round(imageZoom * 100)}%
             </div>
 
             {/* Instructions */}
-            <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-2 rounded-lg backdrop-blur-sm text-xs text-center">
-              <div>Use + / - keys or buttons</div>
-              <div>Press 0 to reset • ESC to close</div>
+            <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-black/60 text-white px-2 py-1 sm:px-3 sm:py-2 rounded-lg backdrop-blur-sm text-xs text-center max-w-[120px] sm:max-w-none">
+              <div className="hidden sm:block">Use + / - keys or buttons</div>
+              <div className="hidden sm:block">Press 0 to reset • ESC to close</div>
+              <div className="sm:hidden">Tap buttons to zoom</div>
             </div>
           </div>
         </div>

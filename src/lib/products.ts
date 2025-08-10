@@ -950,3 +950,63 @@ export async function exportProductsXLSXWithImageFormula(): Promise<Blob> {
     );
   }
 }
+
+export async function updateProduct(
+  designNo: string,
+  updates: Partial<Omit<Product, "id" | "created_at" | "updated_at">>
+) {
+  const { data, error } = await supabase
+    .from("products")
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("design_no", designNo)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating product:", error);
+    throw error;
+  }
+
+  return data as Product;
+}
+
+export async function deleteProduct(designNo: string) {
+  // First get the product to get the image path
+  const { data: product, error: fetchError } = await supabase
+    .from("products")
+    .select("image_path")
+    .eq("design_no", designNo)
+    .single();
+
+  if (fetchError) {
+    console.error("Error fetching product for deletion:", fetchError);
+    throw fetchError;
+  }
+
+  // Delete the product from the database
+  const { error: deleteError } = await supabase
+    .from("products")
+    .delete()
+    .eq("design_no", designNo);
+
+  if (deleteError) {
+    console.error("Error deleting product:", deleteError);
+    throw deleteError;
+  }
+
+  // Try to delete the image from storage (optional - don't fail if this fails)
+  if (product.image_path && !product.image_path.startsWith("http")) {
+    try {
+      const cleanPath = product.image_path.replace(/^product-images\//, "");
+      await supabase.storage.from("product-images").remove([cleanPath]);
+    } catch (storageError) {
+      console.warn("Failed to delete image from storage:", storageError);
+      // Don't throw - the product was deleted successfully
+    }
+  }
+
+  return true;
+}
