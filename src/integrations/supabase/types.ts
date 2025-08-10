@@ -14,13 +14,97 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          created_at: string
+          design_no: string
+          fabric_name: string | null
+          fabric_rate_inr: number | null
+          fabric_supplier: string | null
+          id: string
+          image_path: string
+          matching: string | null
+          matching_fabric_panno_inch: number | null
+          matching_fabric_rate_inr: number | null
+          name: string
+          panno_inch: number | null
+          product_rate_inr: number
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          design_no: string
+          fabric_name?: string | null
+          fabric_rate_inr?: number | null
+          fabric_supplier?: string | null
+          id?: string
+          image_path: string
+          matching?: string | null
+          matching_fabric_panno_inch?: number | null
+          matching_fabric_rate_inr?: number | null
+          name: string
+          panno_inch?: number | null
+          product_rate_inr: number
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          design_no?: string
+          fabric_name?: string | null
+          fabric_rate_inr?: number | null
+          fabric_supplier?: string | null
+          id?: string
+          image_path?: string
+          matching?: string | null
+          matching_fabric_panno_inch?: number | null
+          matching_fabric_rate_inr?: number | null
+          name?: string
+          panno_inch?: number | null
+          product_rate_inr?: number
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
+      }
     }
     Enums: {
       [_ in never]: never
