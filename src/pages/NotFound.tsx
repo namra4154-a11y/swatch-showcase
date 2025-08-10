@@ -1,102 +1,111 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Home, ArrowLeft, Search } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Home, ArrowLeft, RefreshCw } from "lucide-react";
 
-const NotFound = () => {
-  const location = useLocation();
+export default function NotFound() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [countdown, setCountdown] = useState(5);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-    document.title = "Page Not Found – Sheth's ";
-  }, [location.pathname]);
+    document.title = "Page Not Found - Sheth's";
+    
+    // Auto-redirect after 5 seconds
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          setIsRedirecting(true);
+          navigate("/");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [navigate]);
+
+  const handleGoHome = () => {
+    setIsRedirecting(true);
+    navigate("/");
+  };
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
 
   return (
-    <main className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container max-w-md mx-auto px-4">
-        <Card className="border-border/50 text-center">
-          <CardContent className="p-12 space-y-6">
-            {/* 404 Icon */}
-            <div className="relative">
-              <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-4xl font-bold text-primary">404</span>
+    <main className="min-h-[calc(100vh-64px)] bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-border/50">
+        <CardHeader className="text-center space-y-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <span className="text-4xl">⚠️</span>
               </div>
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-destructive/10 rounded-full flex items-center justify-center">
-                <span className="text-sm font-bold text-destructive">!</span>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="space-y-3">
-              <h1 className="text-2xl font-bold tracking-tight">Page Not Found</h1>
-              <p className="text-muted-foreground">
-                The page you're looking for doesn't exist or has been moved.
+          <CardTitle className="text-2xl">Page Not Found</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="text-center space-y-2">
+            <p className="text-muted-foreground">
+              The page you're looking for doesn't exist.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Attempted to access: <code className="bg-muted px-2 py-1 rounded text-xs">{location.pathname}</code>
+            </p>
+            {countdown > 0 && (
+              <p className="text-sm text-primary">
+                Redirecting to home in {countdown} seconds...
               </p>
-              <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 font-mono">
-                {location.pathname}
-              </div>
+            )}
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="space-y-3">
+            <Button 
+              onClick={handleGoHome} 
+              className="w-full" 
+              disabled={isRedirecting}
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Go to Home
+            </Button>
+            
               <Button 
-                onClick={() => navigate(-1)} 
                 variant="outline" 
-                className="flex items-center gap-2"
+              onClick={handleGoBack} 
+              className="w-full"
+              disabled={isRedirecting}
               >
-                <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 mr-2" />
                 Go Back
               </Button>
+            
               <Button 
-                onClick={() => navigate("/")} 
-                className="flex items-center gap-2"
-              >
-                <Home className="h-4 w-4" />
-                Home
+              variant="ghost" 
+              onClick={handleRefresh} 
+              className="w-full"
+              disabled={isRedirecting}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh Page
               </Button>
             </div>
 
-            {/* Quick Links */}
-            <div className="pt-4 border-t">
-              <p className="text-sm text-muted-foreground mb-3">Quick Navigation:</p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => navigate("/products")}
-                  className="text-xs h-8 px-3"
-                >
-                  <Search className="h-3 w-3 mr-1" />
-                  Products
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => navigate("/add")}
-                  className="text-xs h-8 px-3"
-                >
-                  Add Product
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => navigate("/export")}
-                  className="text-xs h-8 px-3"
-                >
-                  Export
-                </Button>
-              </div>
+          <div className="text-xs text-muted-foreground text-center space-y-1">
+            <p>If this problem persists, try:</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Clearing your browser cache</li>
+              <li>Checking your internet connection</li>
+              <li>Contacting support if the issue continues</li>
+            </ul>
             </div>
           </CardContent>
         </Card>
-      </div>
     </main>
   );
-};
-
-export default NotFound;
+}

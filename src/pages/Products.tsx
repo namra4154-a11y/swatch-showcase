@@ -44,7 +44,7 @@ export default function ProductsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
   const [minPrice, setMinPrice] = useState(params.get("minPrice") ? parseInt(params.get("minPrice")!) : 0);
-  const [maxPrice, setMaxPrice] = useState(params.get("maxPrice") ? parseInt(params.get("maxPrice")!) : 5000);
+  const [maxPrice, setMaxPrice] = useState(params.get("maxPrice") ? parseInt(params.get("maxPrice")!) : 500000);
 
   const dq = useDebounce(q, 300);
 
