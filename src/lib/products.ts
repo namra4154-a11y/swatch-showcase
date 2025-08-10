@@ -100,6 +100,25 @@ export async function getSuppliers(): Promise<string[]> {
   return suppliers;
 }
 
+export async function getFabricNames(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("products")
+    .select("fabric_name")
+    .neq("fabric_name", null);
+
+  if (error) {
+    console.error("Error fetching fabric names:", error);
+    throw error;
+  }
+
+  const set = new Set<string>();
+  (data || []).forEach((row) => {
+    if (row.fabric_name) set.add(row.fabric_name);
+  });
+  const fabricNames = Array.from(set).sort();
+  return fabricNames;
+}
+
 export async function getProductByDesignNo(designNo: string) {
   const { data, error } = await supabase
     .from("products")

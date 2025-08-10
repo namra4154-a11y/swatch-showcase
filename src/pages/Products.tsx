@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { searchProducts, getSuppliers, Product } from "@/lib/products";
+import { searchProducts, getSuppliers, getFabricNames, Product } from "@/lib/products";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -39,9 +39,9 @@ export default function ProductsPage() {
   
   // Advanced filters
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [fabricType, setFabricType] = useState<string>("all");
+  const [selectedTags, setSelectedTags] = useState<string[]>(params.get("tags") ? params.get("tags")!.split(",") : []);
+  const [selectedCategory, setSelectedCategory] = useState<string>(params.get("category") || "all");
+  const [fabricType, setFabricType] = useState<string>(params.get("fabricType") || "all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
   const [minPrice, setMinPrice] = useState(params.get("minPrice") ? parseInt(params.get("minPrice")!) : 0);
@@ -50,17 +50,12 @@ export default function ProductsPage() {
   const dq = useDebounce(q, 300);
 
   const [suppliers, setSuppliers] = useState<string[]>([]);
+  const [fabricTypes, setFabricTypes] = useState<string[]>([]);
+  const [fabricTypesLoading, setFabricTypesLoading] = useState(false);
   const [items, setItems] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-
-  // Available fabric types
-  const fabricTypes = [
-    "cotton", "silk", "linen", "wool", "polyester", "velvet", 
-    "jute", "denim", "satin", "canvas", "chiffon", "tweed", 
-    "fleece", "mesh", "corduroy"
-  ];
 
   useEffect(() => {
     document.title = `Catalog – Sheth's `;
@@ -73,6 +68,17 @@ export default function ProductsPage() {
         console.error("Failed to load suppliers:", error);
         setSuppliers([]);
       });
+  }, []);
+
+  useEffect(() => {
+    setFabricTypesLoading(true);
+    getFabricNames()
+      .then(setFabricTypes)
+      .catch((error) => {
+        console.error("Failed to load fabric types:", error);
+        setFabricTypes([]);
+      })
+      .finally(() => setFabricTypesLoading(false));
   }, []);
 
   // Extract available tags from products
@@ -339,18 +345,33 @@ export default function ProductsPage() {
 
               {/* Fabric Type Filter */}
               <div className="space-y-2">
-                <Label>Fabric Type</Label>
+                <Label>
+                  Fabric Type
+                  {!fabricTypesLoading && fabricTypes.length > 0 && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      ({fabricTypes.length} available)
+                    </span>
+                  )}
+                </Label>
                 <Select value={fabricType} onValueChange={(v) => { setFabricType(v); setPage(1); }}>
                   <SelectTrigger>
                     <SelectValue placeholder="All fabric types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All fabric types</SelectItem>
-                    {fabricTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </SelectItem>
-                    ))}
+                    {fabricTypesLoading ? (
+                      <SelectItem value="loading" disabled>Loading fabric types...</SelectItem>
+                    ) : fabricTypes.length === 0 ? (
+                      <SelectItem value="none" disabled>No fabric types available</SelectItem>
+                    ) : (
+                      <>
+                        <SelectItem value="all">All fabric types</SelectItem>
+                        {fabricTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
